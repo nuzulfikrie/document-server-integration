@@ -150,12 +150,12 @@ namespace OnlineEditorsExampleMVC.Helpers
         public static string GetFileUri(string fileName)
         {
             var uri = new UriBuilder(HttpContext.Current.Request.Url)
-                {
-                    Path = HttpRuntime.AppDomainAppVirtualPath + "/"
+            {
+                Path = HttpRuntime.AppDomainAppVirtualPath + "/"
                            + CurUserHostAddress() + "/"
                            + fileName,
-                    Query = ""
-                };
+                Query = ""
+            };
 
             return uri.ToString();
         }
@@ -170,6 +170,47 @@ namespace OnlineEditorsExampleMVC.Helpers
             };
 
             return uri.ToString();
+        }
+
+        public static Dictionary<string, Dictionary<string, object>> GetFileInfo()
+        {
+            var result = new Dictionary<string, Dictionary<string, object>>();
+            var storedFiles = GetStoredFiles();
+
+            if (storedFiles.Any())
+            {
+                foreach (object storedfile in storedFiles)
+                {
+                    var fileName = storedfile.ToString();
+                    var file = new FileModel
+                    {
+                        FileName = fileName
+                    };
+                    var fileinf = new FileInfo(fileName);
+                    var tmp = new Dictionary<string, object>
+                    {
+                         { "version", GetFileVersion(HistoryDir(StoragePath(fileName))) },
+                         {  "id" , file.Key },
+                         { "title" , file.FileName },
+                         { "pureContentLength" , fileinf.Length },
+                         { "contentLength" , BytesToString(fileinf.Length) },
+                         {  "updated" , fileinf.LastWriteTime }                        
+                     };
+                    result.Add(fileName, tmp);
+                }
+            }
+            return result;
+        }
+
+        public static String BytesToString(long byteCount)
+        {
+            string[] suf = { "Byt", "KB", "MB", "GB", "TB", "PB", "EB" }; //
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
 
         public static string GetCallback(string fileName)

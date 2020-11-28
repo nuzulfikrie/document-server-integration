@@ -50,6 +50,9 @@ namespace OnlineEditorsExampleMVC
                 case "remove":
                     Remove(context);
                     break;
+                case "files":
+                    Files(context);
+                    break;
             }
         }
 
@@ -295,7 +298,28 @@ namespace OnlineEditorsExampleMVC
                 }
             }
         }
-
+        private static void Files(HttpContext context)
+        {
+            context.Response.ContentType = "text/plain";
+            try
+            {
+                var result = DocManagerHelper.GetFileInfo();
+                var jss = new JavaScriptSerializer();
+                if (context.Request["fileName"] == null)
+                {                    
+                    context.Response.Write(jss.Serialize(result));
+                }
+                else 
+                {
+                    var fileName = context.Request["fileName"];
+                    context.Response.Write(jss.Serialize(result[fileName]));
+                }                
+            }
+            catch (Exception e)
+            {
+                context.Response.Write("{ \"error\": \"" + e.Message + "\"}");
+            }
+        }
         public bool IsReusable
         {
             get { return false; }
